@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div style="padding:0 1.5rem 1rem; border-bottom:1px solid var(--border);">
+            <div style="font-weight:700; font-size:0.95rem;" id="sidebar-name">Dashboard</div>
+            <div style="font-size:0.8rem; color:var(--text-light);" id="sidebar-role"></div>
+        </div>
+
+        <div class="sidebar-section-title">Kryesore</div>
+        <ul class="sidebar-nav">
+            <li><a href="/dashboard" class="active">📊 Pamja e përgjithshme</a></li>
+            <li><a href="/positions">🔍 Kërko pozicione</a></li>
+            <li><a href="/professions">📚 Profesionet</a></li>
+        </ul>
+
+        <div class="sidebar-section-title">Llogaria</div>
+        <ul class="sidebar-nav" id="sidebar-role-nav">
+        </ul>
+
+        <div class="sidebar-section-title">Sistemi</div>
+        <ul class="sidebar-nav">
+            <li><a href="#" onclick="logout(); return false;">🚪 Dil</a></li>
+        </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="dashboard-main" id="dashboard-content">
+        <div class="loading"><div class="spinner"></div></div>
+    </main>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    loadDashboard().then(() => {
+        if (currentUser) {
+            document.getElementById('sidebar-name').textContent = currentUser.full_name;
+            const roleNames = { student: 'Nxënës', company: 'Kompani', school: 'Shkollë', government: 'Qeveri' };
+            document.getElementById('sidebar-role').textContent = roleNames[currentUser.role] || currentUser.role;
+
+            updateDashboardSidebar();
+
+            // Government dashboard auto-load
+            if (currentUser.role === 'government') {
+                renderGovernmentDashboard(document.getElementById('dashboard-content'));
+            }
+        }
+    });
+</script>
+{% endblock %}

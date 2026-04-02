@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Profesione{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<section style="background: linear-gradient(135deg, var(--secondary), #047857); color:white; padding:3rem 2rem;">
+    <div class="container">
+        <h1 style="font-size:2rem; margin-bottom:0.5rem;">Katalogu i Profesioneve</h1>
+        <p style="opacity:0.9;">17+ profesione të bazuara në modelin zviceran — me kurrikulë, orare, dhe rroga</p>
+        <div style="margin-top:1rem; display:flex; gap:1rem; flex-wrap:wrap;">
+            <div style="background:rgba(255,255,255,0.15); padding:0.5rem 1rem; border-radius:var(--radius-sm);">
+                <strong>EFZ</strong> = Diplomë e plotë (3-4 vjet)
+            </div>
+            <div style="background:rgba(255,255,255,0.15); padding:0.5rem 1rem; border-radius:var(--radius-sm);">
+                <strong>EBA</strong> = Certifikatë bazë (2 vjet)
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Category Filter -->
+<section style="padding:1.5rem 2rem; background:var(--white); border-bottom:1px solid var(--border);">
+    <div class="container">
+        <div id="profession-categories" style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+            <div class="loading"><div class="spinner"></div></div>
+        </div>
+    </div>
+</section>
+
+<!-- Professions Grid -->
+<section class="section">
+    <div class="container">
+        <div class="grid grid-3" id="professions-list">
+            <div class="loading"><div class="spinner"></div></div>
+        </div>
+    </div>
+</section>
+
+<!-- Swiss System Info -->
+<section class="section section-dark">
+    <div class="container">
+        <div class="section-header">
+            <h2>Çfarë përfshihet në çdo profesion?</h2>
+            <p>Sipas modelit zviceran, çdo profesion ka strukturë të qartë</p>
+        </div>
+        <div class="grid grid-3">
+            <div class="info-card">
+                <div class="info-card-icon" style="background:var(--primary-light); color:var(--primary);">📋</div>
+                <h3>Kurrikula e plotë</h3>
+                <p>Module teorike dhe praktike për çdo vit, me orë dhe kompetenca të definuara.</p>
+            </div>
+            <div class="info-card">
+                <div class="info-card-icon" style="background:var(--secondary-light); color:var(--secondary);">📅</div>
+                <h3>Orari Javor</h3>
+                <p>Ndarja e qartë: 3 ditë kompani, 2 ditë shkollë — si në Zvicër.</p>
+            </div>
+            <div class="info-card">
+                <div class="info-card-icon" style="background:var(--warning-light); color:#92400e;">💰</div>
+                <h3>Rroga mujore</h3>
+                <p>Nxënësit paguhen që nga viti i parë. Rroga rritet me përvojën.</p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>loadProfessionsPage();</script>
+{% endblock %}

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}BerufsbildungGlobal{% endblock %} - Arsim Profesional Dual</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎓</text></svg>">
+</head>
+<body>
+    <!-- NAVIGATION -->
+    <nav class="navbar">
+        <div class="navbar-inner">
+            <a href="/" class="navbar-brand">
+                <div class="logo-icon">B</div>
+                <span>BerufsbildungGlobal</span>
+            </a>
+            <button class="hamburger" onclick="document.body.classList.toggle('nav-open')" aria-label="Menu">
+                <span></span><span></span><span></span>
+            </button>
+            <ul class="navbar-nav" id="main-nav">
+                <li><a href="/" class="{% if request.path == '/' %}active{% endif %}" data-i18n="nav.home">Ballina</a></li>
+                <li><a href="/positions" class="{% if request.path == '/positions' %}active{% endif %}" data-i18n="nav.positions">Pozicione (LENA)</a></li>
+                <li><a href="/professions" class="{% if request.path == '/professions' %}active{% endif %}" data-i18n="nav.professions">Profesione</a></li>
+            </ul>
+            <div style="display:flex; align-items:center; gap:0.5rem;">
+                <select id="lang-selector" onchange="loadTranslations(this.value)" class="form-control" style="width:auto; padding:0.3rem 0.5rem; font-size:0.8rem; border-radius:6px;">
+                    <option value="sq">🇦🇱 Shqip</option>
+                    <option value="mk">🇲🇰 Македонски</option>
+                    <option value="en">🇬🇧 English</option>
+                </select>
+            </div>
+            <div class="nav-auth" id="auth-nav">
+                <a href="/login" class="btn btn-outline btn-sm" data-i18n="nav.login">Hyr</a>
+                <a href="/register" class="btn btn-primary btn-sm" data-i18n="nav.register">Regjistrohu</a>
+            </div>
+        </div>
+    </nav>
+
+    {% block content %}{% endblock %}
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="footer-grid">
+            <div class="footer-col">
+                <h4>BerufsbildungGlobal</h4>
+                <p style="font-size:0.9rem; margin-bottom:1rem;">Platforma qe kopjon sistemin zviceran te arsimit profesional dual per cdo vend te botes.</p>
+                <p style="font-size:0.85rem;">Modeli: Berufsbildung (CH)</p>
+            </div>
+            <div class="footer-col">
+                <h4 data-i18n="footer.students">Per Nxenesit</h4>
+                <a href="/positions" data-i18n="nav.positions">Gjej Apprenticeship</a>
+                <a href="/professions" data-i18n="nav.professions">Eksploro Profesionet</a>
+                <a href="/register" data-i18n="nav.register">Regjistrohu</a>
+            </div>
+            <div class="footer-col">
+                <h4 data-i18n="footer.companies">Per Kompanitë</h4>
+                <a href="/register">Regjistro Kompaninë</a>
+                <a href="/positions">Posto Pozicion</a>
+            </div>
+            <div class="footer-col">
+                <h4 data-i18n="footer.system">Rreth Sistemit</h4>
+                <a href="#">Si funksionon ne Zvicër</a>
+                <a href="#">Ligji per Arsim Profesional</a>
+                <a href="#">Kontakt</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>BerufsbildungGlobal &copy; 2026 - Sistemi Zviceran i Arsimit Profesional Dual, Globalizuar</p>
+            <p style="margin-top:0.5rem;">Bazuar ne: BBG/LFPr (Bundesgesetz uber die Berufsbildung) | Konfig. aktuale: Maqedoni e Veriut</p>
+        </div>
+    </footer>
+
+    <script src="/static/js/app.js"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

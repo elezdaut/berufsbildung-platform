@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Hyr{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+    <div class="auth-card">
+        <h1>Mirësevjen përsëri</h1>
+        <p class="subtitle">Hyr në llogarinë tënde për të vazhduar</p>
+
+        <form onsubmit="handleLogin(event)">
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" class="form-control" id="login-email" required placeholder="email@shembull.com">
+            </div>
+            <div class="form-group">
+                <label>Fjalëkalimi</label>
+                <input type="password" class="form-control" id="login-password" required placeholder="Fjalëkalimi juaj">
+            </div>
+            <button type="submit" class="btn btn-primary btn-block btn-lg">Hyr</button>
+        </form>
+
+        <div style="margin-top:1.5rem; padding-top:1.5rem; border-top:1px solid var(--border); text-align:center;">
+            <p style="color:var(--text-light); font-size:0.9rem;">Nuk ke llogari? <a href="/register">Regjistrohu këtu</a></p>
+        </div>
+
+        <div style="margin-top:1.5rem; padding:1rem; background:var(--bg); border-radius:var(--radius-sm);">
+            <p style="font-size:0.85rem; font-weight:600; margin-bottom:0.5rem;">Demo llogaritë:</p>
+            <p style="font-size:0.8rem; color:var(--text-light);">
+                <strong>Nxënës:</strong> student@demo.com / demo123<br>
+                <strong>Kompani:</strong> info@alkaloid.mk / demo123<br>
+                <strong>Shkollë:</strong> admin@shmttetove.edu.mk / demo123<br>
+                <strong>Qeveri:</strong> admin@mon.gov.mk / demo123
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

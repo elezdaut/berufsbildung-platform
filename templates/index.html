@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+{% block title %}Ballina{% endblock %}
+
+{% block content %}
+<!-- HERO SECTION -->
+<section class="hero">
+    <div class="hero-content">
+        <h1 data-i18n="hero.title">Arsimi Profesional Dual<br>Modeli Zviceran, Global</h1>
+        <p data-i18n="hero.subtitle">Kopjojmë sistemin më të suksesshëm të arsimit profesional në botë. Mëso duke punuar — 3 ditë në kompani, 2 ditë në shkollë. Fillo karrierën tënde sot.</p>
+        <div class="hero-buttons">
+            <a href="/positions" class="btn btn-white btn-lg">Gjej Apprenticeship</a>
+            <a href="/register" class="btn btn-outline-white btn-lg">Regjistrohu si Kompani</a>
+        </div>
+        <div class="hero-stats" id="hero-stats">
+            <div class="hero-stat"><span class="hero-stat-number">...</span><span class="hero-stat-label">Profesione</span></div>
+            <div class="hero-stat"><span class="hero-stat-number">...</span><span class="hero-stat-label">Pozicione</span></div>
+            <div class="hero-stat"><span class="hero-stat-number">...</span><span class="hero-stat-label">Kompani</span></div>
+        </div>
+    </div>
+</section>
+
+<!-- HOW IT WORKS - Swiss System -->
+<section class="section section-dark">
+    <div class="container">
+        <div class="section-header">
+            <h2 data-i18n="how.it.works">Si Funksionon Sistemi Dual</h2>
+            <p>I njëjti model që Zvicra e përdor me sukses për 70% të të rinjve</p>
+        </div>
+
+        <div class="grid grid-4">
+            <div class="info-card">
+                <div class="info-card-icon" style="background: var(--primary-light); color: var(--primary);">🏢</div>
+                <h3>3 Ditë në Kompani</h3>
+                <p>Punë praktike e paguar në kompani reale. Mëson duke bërë punën e vërtetë.</p>
+            </div>
+            <div class="info-card">
+                <div class="info-card-icon" style="background: var(--secondary-light); color: var(--secondary);">📚</div>
+                <h3>2 Ditë në Shkollë</h3>
+                <p>Njohuri teorike dhe arsim i përgjithshëm në shkollën profesionale.</p>
+            </div>
+            <div class="info-card">
+                <div class="info-card-icon" style="background: var(--warning-light); color: #92400e;">🏭</div>
+                <h3>Kurse Ndërkompanish</h3>
+                <p>Workshop-e praktike të organizuara nga shoqatat profesionale.</p>
+            </div>
+            <div class="info-card">
+                <div class="info-card-icon" style="background: var(--accent-light); color: var(--accent);">🎓</div>
+                <h3>Diplomë e Njohur</h3>
+                <p>Certifikatë profesionale e njohur ndërkombëtarisht (EFZ/EBA).</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- STEP BY STEP -->
+<section class="section">
+    <div class="container">
+        <div class="section-header">
+            <h2>Si të Fillosh</h2>
+            <p>4 hapa të thjeshtë drejt karrierës suaj</p>
+        </div>
+
+        <div class="timeline">
+            <div class="timeline-item">
+                <div class="timeline-marker">1</div>
+                <div class="timeline-content">
+                    <h3>Eksploro Profesionet</h3>
+                    <p>Shfleto 17+ profesione në kategori të ndryshme — IT, tregti, prodhim, shëndetësi, ndërtimtari, gastronomi.</p>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-marker">2</div>
+                <div class="timeline-content">
+                    <h3>Gjej Pozicionin e Duhur</h3>
+                    <p>Kërko në LENA — databazën tonë të pozicioneve të hapura tek kompanitë partnere.</p>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-marker">3</div>
+                <div class="timeline-content">
+                    <h3>Apliko Online</h3>
+                    <p>Krijo profilin tënd, ngarko CV-në, dhe dërgo aplikimin me një klik.</p>
+                </div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-marker">4</div>
+                <div class="timeline-content">
+                    <h3>Fillo Karrierën</h3>
+                    <p>Nënshkruaj kontratën, fillo apprenticeship-in, dhe ndiq progresin tënd online.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- COMPARISON: Swiss vs Macedonia -->
+<section class="section section-dark">
+    <div class="container">
+        <div class="section-header">
+            <h2>Zvicra vs Maqedonia: Ku jemi dhe ku synojmë</h2>
+            <p>Krahasimi i dy sistemeve dhe mundësia për transformim</p>
+        </div>
+
+        <div style="overflow-x: auto;">
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Aspekti</th>
+                        <th style="color: var(--accent);">Zvicra (Modeli)</th>
+                        <th style="color: var(--primary);">Maqedonia (Aktualisht)</th>
+                        <th style="color: var(--secondary);">Objektivat Tona</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Nxënës në VET</strong></td>
+                        <td>~70% e të rinjve</td>
+                        <td>67% (por cilësi e ulët)</td>
+                        <td>67% me cilësi zvicerane</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Sistemi dual</strong></td>
+                        <td>3-4 ditë kompani + 1-2 shkollë</td>
+                        <td>Kryesisht teori në shkollë</td>
+                        <td>3+2 dual i plotë</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Papunësia rinore</strong></td>
+                        <td>~3%</td>
+                        <td>~24%</td>
+                        <td>Ulje nën 10%</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Nr. profesionesh</strong></td>
+                        <td>~250 profesione</td>
+                        <td>Pak profesione aktive</td>
+                        <td>17+ (faza fillestare)</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Platforma dixhitale</strong></td>
+                        <td>LENA, yousty.ch, berufsberatung.ch</td>
+                        <td>Asnjë platformë e dedikuar</td>
+                        <td>Kjo platformë!</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Paga për nxënës</strong></td>
+                        <td>CHF 500-1500/muaj</td>
+                        <td>0 (pa pagesë)</td>
+                        <td>4,000-11,000 MKD/muaj</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Perfitim i kompanive</strong></td>
+                        <td>70% fitojnë neto</td>
+                        <td>Pa metrikë</td>
+                        <td>Modeli cost-benefit</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<!-- FEATURED POSITIONS -->
+<section class="section">
+    <div class="container">
+        <div class="section-header">
+            <h2>Pozicione të Hapura — LENA</h2>
+            <p>Apprenticeship-et më të reja nga kompanitë partnere</p>
+        </div>
+
+        <div class="grid grid-2" id="featured-positions">
+            <div class="loading"><div class="spinner"></div></div>
+        </div>
+
+        <div style="text-align: center; margin-top: 2rem;">
+            <a href="/positions" class="btn btn-primary btn-lg">Shiko të gjitha pozicionet</a>
+        </div>
+    </div>
+</section>
+
+<!-- PARTNER COMPANIES -->
+<section class="section section-dark">
+    <div class="container">
+        <div class="section-header">
+            <h2>Kompanitë Partnere</h2>
+            <p>Ndërmarrjet që ofrojnë apprenticeship sipas modelit zviceran</p>
+        </div>
+
+        <div class="grid grid-4" style="text-align:center;">
+            <div class="card" style="padding:2rem;">
+                <div style="font-size:2rem; margin-bottom:0.5rem;">💊</div>
+                <h3 style="font-size:1rem;">Alkaloid AD</h3>
+                <p style="font-size:0.85rem; color:var(--text-light);">Farmaci · Shkup</p>
+            </div>
+            <div class="card" style="padding:2rem;">
+                <div style="font-size:2rem; margin-bottom:0.5rem;">🔌</div>
+                <h3 style="font-size:1rem;">Kromberg & Schubert</h3>
+                <p style="font-size:0.85rem; color:var(--text-light);">Automobilistikë · Manastir</p>
+            </div>
+            <div class="card" style="padding:2rem;">
+                <div style="font-size:2rem; margin-bottom:0.5rem;">🚗</div>
+                <h3 style="font-size:1rem;">DRAEXLMAIER</h3>
+                <p style="font-size:0.85rem; color:var(--text-light);">Automobilistikë · Shkup</p>
+            </div>
+            <div class="card" style="padding:2rem;">
+                <div style="font-size:2rem; margin-bottom:0.5rem;">🚌</div>
+                <h3 style="font-size:1rem;">Van Hool</h3>
+                <p style="font-size:0.85rem; color:var(--text-light);">Prodhim · Shkup</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="section" style="background: linear-gradient(135deg, #059669, #1a56db); color:white; text-align:center;">
+    <div class="container">
+        <h2 style="font-size:2rem; margin-bottom:1rem;">Gati për të filluar?</h2>
+        <p style="font-size:1.1rem; opacity:0.9; margin-bottom:2rem;">Bëhu pjesë e sistemit që po ndryshon arsimin profesional në Maqedoni</p>
+        <div class="hero-buttons">
+            <a href="/register" class="btn btn-white btn-lg">Regjistrohu si Nxënës</a>
+            <a href="/register" class="btn btn-outline-white btn-lg">Regjistro Kompaninë</a>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>loadIndexPage();</script>
+{% endblock %}

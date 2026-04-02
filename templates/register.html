@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Regjistrohu{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+    <div class="auth-card">
+        <h1>Krijo llogari</h1>
+        <p class="subtitle">Zgjidh rolin tënd dhe fillo</p>
+
+        <div class="auth-tabs">
+            <button class="auth-tab active" onclick="selectRole('student', event)">Nxënës</button>
+            <button class="auth-tab" onclick="selectRole('company', event)">Kompani</button>
+            <button class="auth-tab" onclick="selectRole('school', event)">Shkollë</button>
+        </div>
+
+        <form onsubmit="handleRegister(event)">
+            <div class="form-group">
+                <label>Emri i plotë</label>
+                <input type="text" class="form-control" id="reg-name" required placeholder="Emri dhe mbiemri">
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" class="form-control" id="reg-email" required placeholder="email@shembull.com">
+            </div>
+            <div class="form-group">
+                <label>Fjalëkalimi</label>
+                <input type="password" class="form-control" id="reg-password" required placeholder="Minimum 6 karaktere" minlength="6">
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+                <div class="form-group">
+                    <label>Telefoni</label>
+                    <input type="tel" class="form-control" id="reg-phone" placeholder="070-123-456">
+                </div>
+                <div class="form-group">
+                    <label>Qyteti</label>
+                    <input type="text" class="form-control" id="reg-city" placeholder="p.sh. Tetovë">
+                </div>
+            </div>
+
+            <div id="extra-fields"></div>
+
+            <button type="submit" class="btn btn-primary btn-block btn-lg">Regjistrohu</button>
+        </form>
+
+        <div style="margin-top:1.5rem; padding-top:1.5rem; border-top:1px solid var(--border); text-align:center;">
+            <p style="color:var(--text-light); font-size:0.9rem;">Ke tashmë llogari? <a href="/login">Hyr këtu</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

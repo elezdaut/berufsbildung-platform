@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}API Documentation{% endblock %}
+
+{% block content %}
+<section style="background: linear-gradient(135deg, #111827, #1f2937); color:white; padding:3rem 2rem;">
+    <div class="container">
+        <h1 style="font-size:2rem;">BerufsbildungGlobal Public API v1.0</h1>
+        <p style="opacity:0.8;">Integro platformen ne sistemet tuaja. API e hapur per shkolla, kompani, dhe zhvillues.</p>
+    </div>
+</section>
+
+<section class="section">
+    <div class="container" style="max-width:900px;">
+        <div class="card" style="margin-bottom:1.5rem; padding:1.5rem;">
+            <h3 style="margin-bottom:0.5rem;">Base URL</h3>
+            <code style="background:var(--bg); padding:0.5rem 1rem; border-radius:var(--radius-sm); display:block; font-size:1.1rem;">https://your-domain.com/api/v1</code>
+        </div>
+
+        <h2 style="margin-bottom:1.5rem;">Endpoints</h2>
+
+        <div class="card" style="margin-bottom:1rem; padding:1.5rem;">
+            <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:0.75rem;">
+                <span class="badge badge-secondary" style="font-family:monospace;">GET</span>
+                <code style="font-size:1rem;">/api/v1/professions</code>
+            </div>
+            <p>Liston te gjitha profesionet aktive me detaje.</p>
+            <details style="margin-top:0.75rem;"><summary style="cursor:pointer; font-weight:600; font-size:0.9rem;">Shiko shembull</summary>
+            <pre style="background:var(--bg); padding:1rem; border-radius:var(--radius-sm); margin-top:0.5rem; overflow-x:auto; font-size:0.85rem;">
+{
+  "data": [
+    {
+      "code": "IT-001",
+      "name_sq": "Informatikan/e",
+      "name_en": "IT Specialist",
+      "category": "Teknologji & IT",
+      "duration_years": 4,
+      "qualification_type": "EFZ"
+    }
+  ],
+  "count": 17,
+  "api_version": "1.0"
+}</pre></details>
+        </div>
+
+        <div class="card" style="margin-bottom:1rem; padding:1.5rem;">
+            <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:0.75rem;">
+                <span class="badge badge-secondary" style="font-family:monospace;">GET</span>
+                <code style="font-size:1rem;">/api/v1/positions</code>
+            </div>
+            <p>Liston te gjitha pozicionet e hapura me informacione per kompaninë dhe profesionin.</p>
+        </div>
+
+        <div class="card" style="margin-bottom:1rem; padding:1.5rem;">
+            <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:0.75rem;">
+                <span class="badge badge-secondary" style="font-family:monospace;">GET</span>
+                <code style="font-size:1rem;">/api/v1/stats</code>
+            </div>
+            <p>Statistika te platformes: numri i profesioneve, pozicioneve, kompanive, nxenesve, kontratave, certifikatave.</p>
+        </div>
+
+        <div class="card" style="margin-bottom:1rem; padding:1.5rem;">
+            <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:0.75rem;">
+                <span class="badge badge-secondary" style="font-family:monospace;">GET</span>
+                <code style="font-size:1rem;">/api/v1/docs</code>
+            </div>
+            <p>Dokumentacioni i API-se ne format JSON.</p>
+        </div>
+
+        <div class="card" style="padding:1.5rem; background:var(--primary-light);">
+            <h3>Integrimi</h3>
+            <p style="margin-top:0.5rem;">Kjo API eshte e hapur per t'u perdorur nga shkollat, kompanite, dhe zhvilluesit. Nuk kerkohet autentikim per endpointet publike.</p>
+            <p style="margin-top:0.5rem; font-size:0.9rem;">Per akses te avancuar (menaxhim aplikimesh, kontratash), kontaktoni administratorin per API key.</p>
+        </div>
+    </div>
+</section>
+{% endblock %}
