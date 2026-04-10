@@ -1,0 +1,473 @@
+{% extends "base.html" %}
+{% block title %}Chat{% endblock %}
+
+{% block content %}
+<div class="chat-layout">
+    <!-- Conversations Sidebar -->
+    <aside class="chat-sidebar" id="chat-sidebar">
+        <div class="chat-sidebar-header">
+            <h2>Mesazhet</h2>
+            <button class="btn btn-primary btn-sm" onclick="showNewChatSearch()" title="Bisedë e re">+</button>
+        </div>
+
+        <!-- New chat search (hidden by default) -->
+        <div class="chat-new-search" id="new-chat-search" style="display:none;">
+            <input type="text" class="form-control" id="contact-search-input"
+                   placeholder="Kërko përdorues..." oninput="searchContacts(this.value)">
+            <div id="contact-results"></div>
+        </div>
+
+        <!-- Search conversations -->
+        <div class="chat-search">
+            <input type="text" class="form-control" id="chat-search-input"
+                   placeholder="Kërko biseda..." oninput="filterConversations(this.value)">
+        </div>
+
+        <!-- Conversations list -->
+        <div class="chat-conversations" id="chat-conversations">
+            <div class="chat-loading">
+                <div class="spinner"></div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Chat Main Area -->
+    <main class="chat-main" id="chat-main">
+        <!-- Empty state (no conversation selected) -->
+        <div class="chat-empty-state" id="chat-empty-state">
+            <div class="chat-empty-icon">💬</div>
+            <h3>Mirësevjen në Chat</h3>
+            <p>Zgjidh një bisedë ose fillo një të re</p>
+            <button class="btn btn-primary" onclick="showNewChatSearch()">Fillo bisedë të re</button>
+        </div>
+
+        <!-- Active conversation (hidden by default) -->
+        <div class="chat-active" id="chat-active" style="display:none;">
+            <!-- Chat header -->
+            <div class="chat-header" id="chat-header">
+                <button class="chat-back-btn" onclick="closeChatMobile()">←</button>
+                <div class="chat-header-avatar" id="chat-header-avatar"></div>
+                <div class="chat-header-info">
+                    <div class="chat-header-name" id="chat-header-name"></div>
+                    <div class="chat-header-status" id="chat-header-status"></div>
+                </div>
+            </div>
+
+            <!-- Messages area -->
+            <div class="chat-messages" id="chat-messages">
+            </div>
+
+            <!-- Message input -->
+            <div class="chat-input-area">
+                <form id="chat-send-form" onsubmit="sendChatMessage(event)">
+                    <div class="chat-input-wrapper">
+                        <input type="text" class="chat-input" id="chat-message-input"
+                               placeholder="Shkruaj mesazh..." autocomplete="off">
+                        <button type="submit" class="chat-send-btn" title="Dërgo">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2Z"/></svg>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// ============================================================
+// CHAT APPLICATION STATE
+// ============================================================
+let chatState = {
+    conversations: [],
+    activeConversation: null,  // other_id
+    messages: [],
+    pollInterval: null,
+    unreadPollInterval: null,
+    lastMessageTime: null
+};
+
+// ============================================================
+// INIT
+// ============================================================
+(async function initChat() {
+    const user = await checkAuth();
+    if (!user) {
+        window.location.href = '/login';
+        return;
+    }
+    await loadConversations();
+
+    // Poll for new messages in active conversation every 3s
+    chatState.pollInterval = setInterval(() => {
+        if (chatState.activeConversation) {
+            pollNewMessages();
+        }
+    }, 3000);
+
+    // Poll conversation list every 8s for new conversations/unread
+    chatState.unreadPollInterval = setInterval(() => {
+        loadConversations(true);
+    }, 8000);
+
+    // Check URL params for pre-selected conversation
+    const params = new URLSearchParams(window.location.search);
+    const withUser = params.get('with');
+    if (withUser) {
+        openConversation(parseInt(withUser));
+    }
+})();
+
+// ============================================================
+// CONVERSATIONS
+// ============================================================
+async function loadConversations(silent = false) {
+    const data = await API.get('/api/chat/conversations');
+    if (data.error) return;
+
+    chatState.conversations = data;
+    renderConversations(data);
+}
+
+function renderConversations(conversations) {
+    const el = document.getElementById('chat-conversations');
+    if (!el) return;
+
+    if (conversations.length === 0) {
+        el.innerHTML = `
+            <div class="chat-no-convos">
+                <p>Nuk keni biseda ende</p>
+                <button class="btn btn-outline btn-sm" onclick="showNewChatSearch()">Fillo bisedë</button>
+            </div>
+        `;
+        return;
+    }
+
+    el.innerHTML = conversations.map(c => {
+        const initials = c.other_name.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+        const isActive = chatState.activeConversation === c.other_id;
+        const isOnline = isUserOnline(c.last_active);
+        const roleLabels = { student: 'Nxënës', company: 'Kompani', school: 'Shkollë', government: 'Qeveri' };
+        const lastMsg = (c.last_message || '').substring(0, 45);
+        const timeStr = formatChatTime(c.last_time);
+
+        return `
+            <div class="chat-convo-item ${isActive ? 'active' : ''} ${c.unread_count > 0 ? 'unread' : ''}"
+                 onclick="openConversation(${c.other_id})">
+                <div class="chat-convo-avatar">
+                    <span>${initials}</span>
+                    ${isOnline ? '<div class="online-dot"></div>' : ''}
+                </div>
+                <div class="chat-convo-info">
+                    <div class="chat-convo-top">
+                        <span class="chat-convo-name">${c.other_name}</span>
+                        <span class="chat-convo-time">${timeStr}</span>
+                    </div>
+                    <div class="chat-convo-bottom">
+                        <span class="chat-convo-preview">${lastMsg}${lastMsg.length >= 45 ? '...' : ''}</span>
+                        ${c.unread_count > 0 ? `<span class="chat-unread-badge">${c.unread_count}</span>` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function filterConversations(query) {
+    const q = query.toLowerCase();
+    const filtered = chatState.conversations.filter(c =>
+        c.other_name.toLowerCase().includes(q)
+    );
+    renderConversations(filtered);
+}
+
+// ============================================================
+// OPEN CONVERSATION
+// ============================================================
+async function openConversation(otherId) {
+    chatState.activeConversation = otherId;
+    chatState.lastMessageTime = null;
+
+    // Show active chat area, hide empty state
+    document.getElementById('chat-empty-state').style.display = 'none';
+    document.getElementById('chat-active').style.display = 'flex';
+
+    // Mobile: show chat area
+    document.querySelector('.chat-layout').classList.add('chat-open');
+
+    // Hide new chat search
+    document.getElementById('new-chat-search').style.display = 'none';
+
+    // Load messages
+    const data = await API.get(`/api/chat/conversations/${otherId}/messages`);
+    if (data.error) return;
+
+    chatState.messages = data.messages || [];
+    const other = data.other_user || {};
+
+    // Update header
+    const initials = (other.full_name || '?').split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+    const roleLabels = { student: 'Nxënës', company: 'Kompani', school: 'Shkollë', government: 'Qeveri' };
+    const isOnline = isUserOnline(other.last_active);
+
+    document.getElementById('chat-header-avatar').innerHTML = `<span>${initials}</span>${isOnline ? '<div class="online-dot"></div>' : ''}`;
+    document.getElementById('chat-header-name').textContent = other.full_name || 'Përdorues';
+    document.getElementById('chat-header-status').innerHTML = isOnline
+        ? `<span class="status-online">Online</span> · ${roleLabels[other.role] || ''}`
+        : `<span class="status-offline">Offline</span> · ${roleLabels[other.role] || ''}`;
+
+    // Render messages
+    renderMessages(chatState.messages);
+
+    // Update last message time for polling
+    if (chatState.messages.length > 0) {
+        chatState.lastMessageTime = chatState.messages[chatState.messages.length - 1].created_at;
+    }
+
+    // Refresh conversation list to update unread badges
+    loadConversations(true);
+
+    // Focus input
+    document.getElementById('chat-message-input').focus();
+}
+
+function renderMessages(messages) {
+    const el = document.getElementById('chat-messages');
+    if (!el) return;
+
+    if (messages.length === 0) {
+        el.innerHTML = `
+            <div class="chat-start-message">
+                <p>Filloni bisedën duke dërguar një mesazh</p>
+            </div>
+        `;
+        return;
+    }
+
+    let lastDate = '';
+    let html = '';
+
+    messages.forEach(m => {
+        const msgDate = m.created_at.split(' ')[0];
+        if (msgDate !== lastDate) {
+            html += `<div class="chat-date-divider"><span>${formatDateLabel(msgDate)}</span></div>`;
+            lastDate = msgDate;
+        }
+
+        const isMine = m.sender_id === currentUser.id;
+        const time = m.created_at.split(' ')[1]?.substring(0, 5) || '';
+
+        html += `
+            <div class="chat-msg ${isMine ? 'chat-msg-mine' : 'chat-msg-theirs'}">
+                <div class="chat-bubble">
+                    <div class="chat-bubble-text">${escapeHtml(m.body)}</div>
+                    <div class="chat-bubble-meta">
+                        <span class="chat-bubble-time">${time}</span>
+                        ${isMine ? `<span class="chat-bubble-status">${m.is_read ? '✓✓' : '✓'}</span>` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+
+    el.innerHTML = html;
+
+    // Scroll to bottom
+    requestAnimationFrame(() => {
+        el.scrollTop = el.scrollHeight;
+    });
+}
+
+// ============================================================
+// SEND MESSAGE
+// ============================================================
+async function sendChatMessage(e) {
+    e.preventDefault();
+    const input = document.getElementById('chat-message-input');
+    const body = input.value.trim();
+    if (!body || !chatState.activeConversation) return;
+
+    input.value = '';
+
+    // Optimistic UI: add message immediately
+    const tempMsg = {
+        id: Date.now(),
+        sender_id: currentUser.id,
+        receiver_id: chatState.activeConversation,
+        body: body,
+        created_at: new Date().toISOString().replace('T', ' ').substring(0, 19),
+        is_read: 0,
+        sender_name: currentUser.full_name
+    };
+    chatState.messages.push(tempMsg);
+    renderMessages(chatState.messages);
+
+    // Send to server
+    const result = await API.post('/api/chat/send', {
+        receiver_id: chatState.activeConversation,
+        body: body
+    });
+
+    if (result.success && result.message) {
+        // Replace temp message with real one
+        chatState.messages[chatState.messages.length - 1] = result.message;
+        chatState.lastMessageTime = result.message.created_at;
+    }
+
+    // Refresh conversation list
+    loadConversations(true);
+    input.focus();
+}
+
+// ============================================================
+// POLLING FOR NEW MESSAGES
+// ============================================================
+async function pollNewMessages() {
+    if (!chatState.activeConversation) return;
+
+    const since = chatState.lastMessageTime || '';
+    const url = `/api/chat/conversations/${chatState.activeConversation}/messages${since ? '?since=' + encodeURIComponent(since) : ''}`;
+    const data = await API.get(url);
+    if (data.error || !data.messages) return;
+
+    const newMsgs = data.messages.filter(m =>
+        !chatState.messages.some(existing => existing.id === m.id)
+    );
+
+    if (newMsgs.length > 0) {
+        chatState.messages.push(...newMsgs);
+        renderMessages(chatState.messages);
+        chatState.lastMessageTime = chatState.messages[chatState.messages.length - 1].created_at;
+
+        // Update header online status
+        if (data.other_user) {
+            const isOnline = isUserOnline(data.other_user.last_active);
+            const statusEl = document.getElementById('chat-header-status');
+            if (statusEl) {
+                const roleLabels = { student: 'Nxënës', company: 'Kompani', school: 'Shkollë', government: 'Qeveri' };
+                statusEl.innerHTML = isOnline
+                    ? `<span class="status-online">Online</span> · ${roleLabels[data.other_user.role] || ''}`
+                    : `<span class="status-offline">Offline</span> · ${roleLabels[data.other_user.role] || ''}`;
+            }
+        }
+    }
+}
+
+// ============================================================
+// NEW CONVERSATION / CONTACTS SEARCH
+// ============================================================
+function showNewChatSearch() {
+    const el = document.getElementById('new-chat-search');
+    el.style.display = el.style.display === 'none' ? 'block' : 'none';
+    if (el.style.display === 'block') {
+        document.getElementById('contact-search-input').value = '';
+        document.getElementById('contact-results').innerHTML = '';
+        document.getElementById('contact-search-input').focus();
+    }
+}
+
+let contactSearchTimeout = null;
+function searchContacts(query) {
+    clearTimeout(contactSearchTimeout);
+    if (query.length < 2) {
+        document.getElementById('contact-results').innerHTML = '';
+        return;
+    }
+    contactSearchTimeout = setTimeout(async () => {
+        const users = await API.get(`/api/chat/contacts?q=${encodeURIComponent(query)}`);
+        if (users.error) return;
+
+        const el = document.getElementById('contact-results');
+        if (users.length === 0) {
+            el.innerHTML = '<div class="contact-no-results">Nuk u gjet asnjë përdorues</div>';
+            return;
+        }
+
+        const roleLabels = { student: 'Nxënës', company: 'Kompani', school: 'Shkollë', government: 'Qeveri' };
+        el.innerHTML = users.map(u => {
+            const initials = u.full_name.split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+            const isOnline = isUserOnline(u.last_active);
+            return `
+                <div class="contact-item" onclick="startNewConversation(${u.id})">
+                    <div class="chat-convo-avatar" style="width:36px; height:36px; font-size:0.75rem;">
+                        <span>${initials}</span>
+                        ${isOnline ? '<div class="online-dot"></div>' : ''}
+                    </div>
+                    <div>
+                        <div style="font-weight:600; font-size:0.9rem;">${u.full_name}</div>
+                        <div style="font-size:0.75rem; color:var(--text-light);">${roleLabels[u.role] || u.role}${u.city ? ' · ' + u.city : ''}</div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }, 300);
+}
+
+function startNewConversation(userId) {
+    document.getElementById('new-chat-search').style.display = 'none';
+    openConversation(userId);
+}
+
+// ============================================================
+// MOBILE BACK BUTTON
+// ============================================================
+function closeChatMobile() {
+    document.querySelector('.chat-layout').classList.remove('chat-open');
+    chatState.activeConversation = null;
+    document.getElementById('chat-active').style.display = 'none';
+    document.getElementById('chat-empty-state').style.display = 'flex';
+    loadConversations(true);
+}
+
+// ============================================================
+// HELPERS
+// ============================================================
+function isUserOnline(lastActive) {
+    if (!lastActive) return false;
+    const last = new Date(lastActive);
+    const now = new Date();
+    return (now - last) < 5 * 60 * 1000; // 5 minutes
+}
+
+function formatChatTime(dateStr) {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) {
+        return dateStr.split(' ')[1]?.substring(0, 5) || '';
+    } else if (diffDays === 1) {
+        return 'Dje';
+    } else if (diffDays < 7) {
+        const days = ['Diel', 'Hën', 'Mar', 'Mër', 'Enj', 'Pre', 'Sht'];
+        return days[date.getDay()];
+    } else {
+        return date.toLocaleDateString('sq');
+    }
+}
+
+function formatDateLabel(dateStr) {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) return 'Sot';
+    if (diffDays === 1) return 'Dje';
+    return date.toLocaleDateString('sq', { weekday: 'long', day: 'numeric', month: 'long' });
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Cleanup on page leave
+window.addEventListener('beforeunload', () => {
+    clearInterval(chatState.pollInterval);
+    clearInterval(chatState.unreadPollInterval);
+});
+</script>
+{% endblock %}

@@ -57,6 +57,28 @@ function updateNavForUser() {
         `;
         loadNotifications();
     }
+
+    // Show chat link in nav
+    const chatLink = document.getElementById('nav-chat-link');
+    if (chatLink) chatLink.style.display = '';
+
+    // Start polling chat unread count
+    updateChatUnreadBadge();
+    setInterval(updateChatUnreadBadge, 15000);
+}
+
+async function updateChatUnreadBadge() {
+    const data = await API.get('/api/chat/unread');
+    if (data.error) return;
+    const badge = document.getElementById('nav-chat-unread');
+    if (badge) {
+        if (data.unread > 0) {
+            badge.textContent = data.unread > 99 ? '99+' : data.unread;
+            badge.style.display = 'flex';
+        } else {
+            badge.style.display = 'none';
+        }
+    }
 }
 
 function updateNavForGuest() {
@@ -840,10 +862,10 @@ async function renderSchoolDashboard(el, data) {
                     <strong>📚 Profesionet</strong>
                     <p style="font-size:0.85rem; color:var(--text-light);">Katalogu i profesioneve</p>
                 </a>
-                <div class="card" style="margin-bottom:0.75rem; padding:1rem; cursor:pointer;" onclick="showMessages()">
-                    <strong>💬 Mesazhet</strong>
+                <a href="/chat" class="card" style="display:block; margin-bottom:0.75rem; padding:1rem;">
+                    <strong>💬 Chat</strong>
                     <p style="font-size:0.85rem; color:var(--text-light);">Komuniko me kompanite dhe nxënësit</p>
-                </div>
+                </a>
             </div>
             <div class="card">
                 <h3 style="margin-bottom:1rem;">Rreth Sistemit Dual</h3>
@@ -1454,7 +1476,7 @@ async function showConversation(otherId, otherName) {
 }
 
 async function startChat(userId, userName) {
-    showConversation(userId, userName);
+    window.location.href = `/chat?with=${userId}`;
 }
 
 // ============================================================
@@ -1855,7 +1877,7 @@ function updateDashboardSidebar() {
             <li><a href="#" onclick="showFavorites(); return false;">♥ Të ruajturat</a></li>
             <li><a href="#" onclick="showContracts(); return false;">📜 Kontratat</a></li>
             <li><a href="#" onclick="showSchedule(); return false;">📅 Orari</a></li>
-            <li><a href="#" onclick="showMessages(); return false;">💬 Mesazhet</a></li>
+            <li><a href="/chat">💬 Chat</a></li>
             <li><a href="#" onclick="showUploads(); return false;">📁 Dokumentet</a></li>
             <li><a href="#" onclick="showCertificates(); return false;">🎓 Certifikatat</a></li>
             <li><a href="#" onclick="showEditStudentProfile(); return false;">👤 Profili</a></li>
@@ -1866,14 +1888,14 @@ function updateDashboardSidebar() {
             <li><a href="#" onclick="loadDashboard(); return false;">📊 Pamja</a></li>
             <li><a href="#" onclick="showCompanyApplications(); return false;">📨 Aplikimet</a></li>
             <li><a href="#" onclick="showContracts(); return false;">👨‍🎓 Nxenesit</a></li>
-            <li><a href="#" onclick="showMessages(); return false;">💬 Mesazhet</a></li>
+            <li><a href="/chat">💬 Chat</a></li>
             <li><a href="#" onclick="showEditCompanyProfile(); return false;">🏢 Profili</a></li>
             <li><a href="#" onclick="showChangePassword(); return false;">🔑 Fjalëkalimi</a></li>
         `;
     } else if (currentUser.role === 'school') {
         roleNav.innerHTML = `
             <li><a href="#" onclick="loadDashboard(); return false;">📊 Pamja</a></li>
-            <li><a href="#" onclick="showMessages(); return false;">💬 Mesazhet</a></li>
+            <li><a href="/chat">💬 Chat</a></li>
             <li><a href="/positions">📋 Pozicionet</a></li>
             <li><a href="/professions">📚 Profesionet</a></li>
         `;

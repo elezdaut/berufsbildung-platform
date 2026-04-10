@@ -408,6 +408,12 @@ def init_db():
     );
     ''')
 
+    # Add last_active column to users if not exists
+    try:
+        db.execute("ALTER TABLE users ADD COLUMN last_active TIMESTAMP")
+    except Exception:
+        pass  # Column already exists
+
     # Seed data
     seed_data(db)
     db.commit()
@@ -975,6 +981,17 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated
 
+@app.before_request
+def update_last_active():
+    if 'user_id' in session:
+        try:
+            db = get_db()
+            db.execute("UPDATE users SET last_active=? WHERE id=?",
+                       (datetime.now().strftime('%Y-%m-%d %H:%M:%S'), session['user_id']))
+            db.commit()
+        except Exception:
+            pass
+
 # ============================================================
 # PAGE ROUTES
 # ============================================================
@@ -1003,6 +1020,11 @@ def positions_page():
 @app.route('/professions')
 def professions_page():
     return render_template('professions.html')
+
+@app.route('/chat')
+@login_required
+def chat_page():
+    return render_template('chat.html')
 
 @app.route('/api-docs')
 def api_docs_page():
@@ -2265,7 +2287,7 @@ def download_certificate_pdf(cert_id):
                      download_name=f"Certifikate_{cert['certificate_number']}.pdf")
 
 # ============================================================
-# FEATURE 3: MESSAGING / CHAT
+# FEATURE 3: MESSAGING / CHAT (Advanced)
 # ============================================================
 
 @app.route('/api/messages')
@@ -2273,7 +2295,6 @@ def download_certificate_pdf(cert_id):
 def get_messages():
     db = get_db()
     uid = session['user_id']
-    # Get conversations (grouped by other person)
     messages = db.execute("""
         SELECT m.*,
                CASE WHEN m.sender_id=? THEN u2.full_name ELSE u1.full_name END as other_name,
@@ -2288,6 +2309,153 @@ def get_messages():
     unread = db.execute("SELECT COUNT(*) FROM messages WHERE receiver_id=? AND is_read=0", (uid,)).fetchone()[0]
     return jsonify({'messages': [dict(m) for m in messages], 'unread_count': unread})
 
+@app.route('/api/chat/conversations')
+@login_required
+def get_chat_conversations():
+    """Get all conversations with last message preview, unread count, and online status"""
+    db = get_db()
+    uid = session['user_id']
+
+    conversations = db.execute("""
+        SELECT
+            other_id,
+            other_name,
+            other_role,
+            last_active,
+            body as last_message,
+            last_time,
+            unread_count
+        FROM (
+            SELECT
+                CASE WHEN m.sender_id=? THEN m.receiver_id ELSE m.sender_id END as other_id,
+                CASE WHEN m.sender_id=? THEN u2.full_name ELSE u1.full_name END as other_name,
+                CASE WHEN m.sender_id=? THEN u2.role ELSE u1.role END as other_role,
+                CASE WHEN m.sender_id=? THEN u2.last_active ELSE u1.last_active END as last_active,
+                m.body,
+                m.created_at as last_time,
+                m.sender_id,
+                ROW_NUMBER() OVER (
+                    PARTITION BY CASE WHEN m.sender_id=? THEN m.receiver_id ELSE m.sender_id END
+                    ORDER BY m.created_at DESC
+                ) as rn,
+                (SELECT COUNT(*) FROM messages m2
+                 WHERE m2.sender_id = CASE WHEN m.sender_id=? THEN m.receiver_id ELSE m.sender_id END
+                 AND m2.receiver_id = ? AND m2.is_read = 0) as unread_count
+            FROM messages m
+            JOIN users u1 ON m.sender_id=u1.id
+            JOIN users u2 ON m.receiver_id=u2.id
+            WHERE m.sender_id=? OR m.receiver_id=?
+        ) sub
+        WHERE rn = 1
+        ORDER BY last_time DESC
+    """, (uid, uid, uid, uid, uid, uid, uid, uid, uid)).fetchall()
+
+    return jsonify([dict(c) for c in conversations])
+
+@app.route('/api/chat/conversations/<int:other_id>/messages')
+@login_required
+def get_chat_messages(other_id):
+    """Get messages for a conversation with optional since parameter for polling"""
+    db = get_db()
+    uid = session['user_id']
+    since = request.args.get('since', '')
+
+    query = """
+        SELECT m.id, m.sender_id, m.receiver_id, m.body, m.created_at, m.is_read,
+               u.full_name as sender_name
+        FROM messages m JOIN users u ON m.sender_id=u.id
+        WHERE (m.sender_id=? AND m.receiver_id=?) OR (m.sender_id=? AND m.receiver_id=?)
+    """
+    params = [uid, other_id, other_id, uid]
+
+    if since:
+        query += " AND m.created_at > ?"
+        params.append(since)
+
+    query += " ORDER BY m.created_at ASC"
+    msgs = db.execute(query, params).fetchall()
+
+    # Mark messages from other user as read
+    db.execute("UPDATE messages SET is_read=1 WHERE sender_id=? AND receiver_id=? AND is_read=0",
+               (other_id, uid))
+    db.commit()
+
+    other = db.execute("SELECT id, full_name, role, last_active FROM users WHERE id=?", (other_id,)).fetchone()
+
+    return jsonify({
+        'messages': [dict(m) for m in msgs],
+        'other_user': dict(other) if other else {}
+    })
+
+@app.route('/api/chat/send', methods=['POST'])
+@login_required
+def chat_send_message():
+    """Send a chat message"""
+    data = request.json
+    if not data or not data.get('receiver_id') or not data.get('body', '').strip():
+        return jsonify({'error': 'Mesazhi dhe marrësi janë të detyrueshëm'}), 400
+
+    db = get_db()
+    cursor = db.execute(
+        "INSERT INTO messages (sender_id, receiver_id, subject, body) VALUES (?,?,?,?)",
+        (session['user_id'], data['receiver_id'], '', data['body'].strip()))
+    msg_id = cursor.lastrowid
+
+    create_notification(db, data['receiver_id'], 'Mesazh i ri',
+        f'Keni një mesazh të ri nga {session["full_name"]}', 'info')
+    db.commit()
+
+    msg = db.execute("""
+        SELECT m.id, m.sender_id, m.receiver_id, m.body, m.created_at, m.is_read,
+               u.full_name as sender_name
+        FROM messages m JOIN users u ON m.sender_id=u.id WHERE m.id=?
+    """, (msg_id,)).fetchone()
+
+    return jsonify({'success': True, 'message': dict(msg)})
+
+@app.route('/api/chat/contacts')
+@login_required
+def get_chat_contacts():
+    """Search for users to start a new conversation"""
+    db = get_db()
+    uid = session['user_id']
+    search = request.args.get('q', '').strip()
+
+    if len(search) < 2:
+        return jsonify([])
+
+    users = db.execute("""
+        SELECT id, full_name, role, city, last_active
+        FROM users
+        WHERE id != ? AND is_active = 1 AND full_name LIKE ?
+        ORDER BY full_name ASC
+        LIMIT 20
+    """, (uid, f'%{search}%')).fetchall()
+
+    return jsonify([dict(u) for u in users])
+
+@app.route('/api/chat/unread')
+@login_required
+def get_chat_unread():
+    """Get total unread message count"""
+    db = get_db()
+    uid = session['user_id']
+    count = db.execute("SELECT COUNT(*) FROM messages WHERE receiver_id=? AND is_read=0",
+                       (uid,)).fetchone()[0]
+    return jsonify({'unread': count})
+
+@app.route('/api/chat/conversations/<int:other_id>/read', methods=['PUT'])
+@login_required
+def mark_conversation_read(other_id):
+    """Mark all messages in a conversation as read"""
+    db = get_db()
+    uid = session['user_id']
+    db.execute("UPDATE messages SET is_read=1 WHERE sender_id=? AND receiver_id=? AND is_read=0",
+               (other_id, uid))
+    db.commit()
+    return jsonify({'success': True})
+
+# Legacy endpoint kept for backward compatibility
 @app.route('/api/messages/conversation/<int:other_id>')
 @login_required
 def get_conversation(other_id):
@@ -2299,11 +2467,8 @@ def get_conversation(other_id):
         WHERE (m.sender_id=? AND m.receiver_id=?) OR (m.sender_id=? AND m.receiver_id=?)
         ORDER BY m.created_at ASC
     """, (uid, other_id, other_id, uid)).fetchall()
-
-    # Mark as read
     db.execute("UPDATE messages SET is_read=1 WHERE sender_id=? AND receiver_id=?", (other_id, uid))
     db.commit()
-
     other = db.execute("SELECT full_name, role FROM users WHERE id=?", (other_id,)).fetchone()
     return jsonify({'messages': [dict(m) for m in msgs], 'other_user': dict(other) if other else {}})
 

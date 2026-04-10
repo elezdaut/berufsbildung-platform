@@ -22,6 +22,7 @@
                 <li><a href="/" class="{% if request.path == '/' %}active{% endif %}" data-i18n="nav.home">Ballina</a></li>
                 <li><a href="/positions" class="{% if request.path == '/positions' %}active{% endif %}" data-i18n="nav.positions">Pozicione (LENA)</a></li>
                 <li><a href="/professions" class="{% if request.path == '/professions' %}active{% endif %}" data-i18n="nav.professions">Profesione</a></li>
+                <li id="nav-chat-link" style="display:none;"><a href="/chat" class="{% if request.path == '/chat' %}active{% endif %}" style="position:relative;">💬 Chat <span id="nav-chat-unread" class="nav-chat-badge" style="display:none;">0</span></a></li>
             </ul>
             <div style="display:flex; align-items:center; gap:0.5rem;">
                 <select id="lang-selector" onchange="loadTranslations(this.value)" class="form-control" style="width:auto; padding:0.3rem 0.5rem; font-size:0.8rem; border-radius:6px;">
